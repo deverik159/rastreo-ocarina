@@ -121,6 +121,19 @@ def parse_price(text):
     return val
 
 
+def parse_shipping(text):
+    """Extrae el costo de envío (MXN) de textos tipo 'Envío $6,000' o 'Envío gratis'.
+    Devuelve 0.0 si es gratis o si no se puede determinar."""
+    if text is None:
+        return 0.0
+    t = str(text).lower()
+    if any(w in t for w in ["gratis", "free", "sin costo", "envío incluido",
+                            "envio incluido", "gratuito"]):
+        return 0.0
+    val = parse_price(t)
+    return val if val is not None else 0.0
+
+
 def norm(s):
     return (s or "").lower()
 
@@ -178,10 +191,18 @@ def serpapi_shopping(query):
         price = it.get("extracted_price") or parse_price(it.get("price"))
         if price is None:
             continue
+        # SerpApi expone el envío en distintos campos según el resultado
+        ship_raw = (it.get("delivery") or it.get("shipping")
+                    or it.get("delivery_options") or "")
+        ship = parse_shipping(ship_raw)
+        # marca si el envío no venía explícito (para no dar por hecho que es gratis)
+        ship_known = bool(str(ship_raw).strip())
         out.append({
             "store": it.get("source") or it.get("store") or "Google Shopping",
             "title": it.get("title", ""),
             "price": float(price),
+            "ship": ship,
+            "ship_known": ship_known,
             "link": it.get("product_link") or it.get("link") or "",
         })
     log(f"SerpApi '{query}': {len(out)} resultados crudos")
@@ -230,6 +251,8 @@ def playwright_search(query):
                             "store": store["store"],
                             "title": title.strip(),
                             "price": price,
+                            "ship": 0.0,          # no scrapeamos envío; se asume 0
+                            "ship_known": False,
                             "link": link or url,
                         })
                     except Exception:
@@ -254,27 +277,35 @@ def collect(product_key):
     # filtra por titulo
     valid = [r for r in raw if title_matches(r["title"], cfg)]
 
-    # dedup por (store, precio redondeado)
+    # precio FINAL = precio de lista + envío (lo que realmente pagas)
+    for r in valid:
+        r.setdefault("ship", 0.0)
+        r.setdefault("ship_known", False)
+        r["final"] = round(r["price"] + (r["ship"] or 0.0))
+
+    # dedup por (store, precio final redondeado)
     seen = set()
     dedup = []
     for r in valid:
-        key = (norm(r["store"]), round(r["price"]))
+        key = (norm(r["store"]), r["final"])
         if key in seen:
             continue
         seen.add(key)
         dedup.append(r)
 
-    # quita outliers
-    prices_all = [r["price"] for r in dedup]
-    clean = [r for r in dedup if not is_outlier(r["price"], prices_all)]
+    # quita outliers (sobre el precio final)
+    finals_all = [r["final"] for r in dedup]
+    clean = [r for r in dedup if not is_outlier(r["final"], finals_all)]
 
-    clean.sort(key=lambda x: x["price"])
+    # ordena por precio final (de más barato a más caro)
+    clean.sort(key=lambda x: x["final"])
     return clean
 
 
 def analyze(product_key, listings):
     cfg = PRODUCTS[product_key]
-    prices = [l["price"] for l in listings]
+    # se usa el precio FINAL (con envío) para todos los cálculos
+    prices = [l["final"] for l in listings]
 
     official = OFFICIAL_PRICE.get(product_key)
     official_src = "config"
@@ -287,7 +318,7 @@ def analyze(product_key, listings):
     target_high = round(market * 0.80) if market else None
 
     best = listings[0] if listings else None
-    hit = bool(best and market and best["price"] <= market * 0.80)
+    hit = bool(best and market and best["final"] <= market * 0.80)
 
     return {
         "name": cfg["name"],
@@ -322,6 +353,16 @@ def fmt_money(v):
     return f"${v:,.0f} MXN" if v is not None else "—"
 
 
+def ship_note(l):
+    """Texto del envío para desglosar el precio final."""
+    ship = l.get("ship", 0.0) or 0.0
+    if ship > 0:
+        return f" (incl. {fmt_money(ship)} envío)"
+    if not l.get("ship_known", False):
+        return " (envío no confirmado)"
+    return " (envío gratis)"
+
+
 def build_message(today, analyses):
     L = []
     L.append(f"<b>Monitor de precios — {today.isoformat()}</b>")
@@ -340,22 +381,24 @@ def build_message(today, analyses):
         L.append(f"Objetivo (20–25% off): "
                  f"{fmt_money(a['target_low'])} – {fmt_money(a['target_high'])}")
         b = a["best"]
-        d_off = pct(b["price"], off)
-        d_mkt = pct(b["price"], a["market"])
-        L.append(f"Mejor hoy: <b>{fmt_money(b['price'])}</b> en {b['store']}"
-                 + (f" ({fmt_disc(d_off)} vs oficial" if d_off is not None else "")
-                 + (f", {fmt_disc(d_mkt)} vs mercado)" if d_mkt is not None else ")"))
+        d_off = pct(b["final"], off)
+        d_mkt = pct(b["final"], a["market"])
+        L.append(f"Mejor hoy: <b>{fmt_money(b['final'])}</b>{ship_note(b)} "
+                 f"en {b['store']}"
+                 + (f" — {fmt_disc(d_off)} vs oficial" if d_off is not None else "")
+                 + (f", {fmt_disc(d_mkt)} vs mercado" if d_mkt is not None else ""))
         if b["link"]:
             L.append(f'<a href="{b["link"]}">ver oferta</a>')
-        # top 5 tabla compacta
-        L.append("Top precios:")
+        # top 5 tabla compacta (precio final con envío)
+        L.append("Top precios (final c/envío):")
         for l in a["listings"][:5]:
-            dp = pct(l["price"], off)
+            dp = pct(l["final"], off)
             dp_s = f" ({fmt_disc(dp)})" if dp is not None else ""
-            L.append(f"• {fmt_money(l['price'])}{dp_s} — {l['store']}")
+            L.append(f"• {fmt_money(l['final'])}{dp_s} — {l['store']}"
+                     f"{ship_note(l)}")
     L.append("")
-    L.append("<i>Precios de lista (envío/impuestos pueden variar). "
-             "No se realizó ninguna compra.</i>")
+    L.append("<i>Precios finales con envío cuando la fuente lo reporta; "
+             "impuestos pueden variar. No se realizó ninguna compra.</i>")
     return "\n".join(L)
 
 # ------------------------------------------------------------- telegram ------
@@ -398,8 +441,8 @@ def append_log(today, analyses):
             f.write(f"- Objetivo: {fmt_money(a['target_low'])} – "
                     f"{fmt_money(a['target_high'])}\n")
             if b:
-                f.write(f"- Mejor visto: {fmt_money(b['price'])} en "
-                        f"{b['store']} — {b['link']}\n")
+                f.write(f"- Mejor visto (final c/envío): {fmt_money(b['final'])}"
+                        f"{ship_note(b)} en {b['store']} — {b['link']}\n")
                 f.write(f"- Objetivo alcanzado: {'SÍ' if a['hit'] else 'no'}\n")
             else:
                 f.write("- Mejor visto: sin datos\n")
