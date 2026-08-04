@@ -1,0 +1,43 @@
+name: Monitor de precios
+
+on:
+  # Agosto 2026, cada 3 dias, 15:00 UTC (~9-10 AM hora del centro de Mexico)
+  schedule:
+    - cron: "0 15 1,4,7,10,13,16,19,22,25,28,31 8 *"
+  # Permite dispararlo manualmente desde la pestaña Actions
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Correr monitor
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+        run: python monitor.py
+
+      - name: Guardar log en el repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add log/monitor_log.md || true
+          git commit -m "log: corrida $(date -u +%F)" || echo "sin cambios que commitear"
+          git push || echo "push omitido"
