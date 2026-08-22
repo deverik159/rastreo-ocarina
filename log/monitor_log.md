@@ -142,3 +142,19 @@
 - Mejor visto (final c/envío): $10,915 MXN (envío no confirmado) en eBay — https://www.google.com.mx/search?ibp=oshop&q=Lenovo Legion Go S SteamOS&prds=productid:4153352591824725039,headlineOfferDocid:4153352591824725039,imageDocid:8702055290908247677,rds:PC_2199637193381088664|PROD_PC_2199637193381088664,pvt:hg&hl=es&gl=mx&udm=28
 - Objetivo alcanzado: SÍ
 
+## 2026-08-22
+
+### ASUS ROG Xbox Ally X (Z2 Extreme / 24GB / 1TB)
+- Precio oficial/ref.: $21,266 MXN (mediana de mercado (sin precio oficial configurado))
+- Mercado (mediana): $21,266 MXN
+- Objetivo: $15,949 MXN – $17,012 MXN
+- Mejor visto (final c/envío): $11,859 MXN (envío no confirmado) en eBay — https://www.google.com.mx/search?ibp=oshop&q=ASUS ROG Xbox Ally X 1TB&prds=catalogid:10094603491061223998,productid:15345190994770758704,headlineOfferDocid:18355083224491750215,imageDocid:6368224800427077400,rds:PC_16544119261807059865|PROD_PC_16544119261807059865,gpcid:16544119261807059865,pvt:hg&hl=es&gl=mx&udm=28
+- Objetivo alcanzado: SÍ
+
+### Lenovo Legion Go S - SteamOS
+- Precio oficial/ref.: $20,267 MXN (mediana de mercado (sin precio oficial configurado))
+- Mercado (mediana): $20,267 MXN
+- Objetivo: $15,200 MXN – $16,214 MXN
+- Mejor visto (final c/envío): $10,827 MXN (envío no confirmado) en eBay — https://www.google.com.mx/search?ibp=oshop&q=Lenovo Legion Go S SteamOS&prds=productid:4153352591824725039,headlineOfferDocid:4153352591824725039,imageDocid:8702055290908247677,rds:PC_2199637193381088664|PROD_PC_2199637193381088664,pvt:hg&hl=es&gl=mx&udm=28
+- Objetivo alcanzado: SÍ
+
