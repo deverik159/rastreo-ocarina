@@ -1,0 +1,149 @@
+{
+  "producto": "The Legend of Zelda: Ocarina of Time (Nintendo Switch 2, edición física)",
+  "lanzamiento": "2026-11-05",
+  "precio_maximo_mxn": 1800,
+  "resumen_diario_hora": 9,
+  "aviso_tras_errores_seguidos": 12,
+  "_como_funciona": "Cada tienda se clasifica en este orden: bloqueo → selectores_agotado → selectores_disponible → texto_agotado → texto_disponible → texto_terceros → desconocido. Los textos se comparan sin acentos ni mayúsculas. Si defines selector_zona, los textos sólo se buscan dentro de esos elementos. Pon activa=false o url vacía para omitir una tienda. motor puede ser requests (rápido) o playwright (para sitios que pintan con JavaScript).",
+  "tiendas": [
+    {
+      "id": "amazon_mx",
+      "nombre": "Amazon México",
+      "url": "https://www.amazon.com.mx/dp/B0HJ6W2J5W",
+      "activa": true,
+      "motor": "requests",
+      "verificada": true,
+      "nota": "Ficha oficial de la preventa ($1,749). Amazon suele servir un captcha a IPs de centros de datos: si ves «bloqueado» seguido, corre el script desde tu casa o cambia el motor a playwright.",
+      "reglas": {
+        "bloqueo": [
+          "captchacharacters",
+          "api-services-support@amazon.com",
+          "Escribe los caracteres que ves",
+          "Type the characters you see",
+          "Robot Check"
+        ],
+        "selectores_agotado": ["#outOfStock"],
+        "selectores_disponible": ["#add-to-cart-button", "#buy-now-button"],
+        "selector_zona": "#availability, #buybox, #desktop_buybox, #buybox-see-all-buying-choices",
+        "texto_agotado": [
+          "No disponible por el momento",
+          "no sabemos si este producto volverá",
+          "Agotado"
+        ],
+        "texto_disponible": ["Reservar", "Pre-ordena", "Preventa", "Agregar al carrito", "Comprar ahora"],
+        "texto_terceros": ["Ver opciones de compra", "Ver todas las opciones de compra", "Otros vendedores"],
+        "selector_precio": [
+          "#corePrice_feature_div .a-offscreen",
+          "#corePriceDisplay_desktop_feature_div .a-offscreen",
+          "#buybox .a-price .a-offscreen",
+          ".a-price .a-offscreen"
+        ],
+        "selector_vendedor": [
+          "#merchant-info",
+          "#sellerProfileTriggerId",
+          "#tabular-buybox .tabular-buybox-text[tabular-attribute-name='Vendido por']"
+        ]
+      }
+    },
+    {
+      "id": "coppel",
+      "nombre": "Coppel",
+      "url": "https://www.coppel.com/pdp/preventa-the-legend-of-zelda-ocarina-of-time-para-nintendo-switch-2-pm-2504943",
+      "activa": true,
+      "motor": "requests",
+      "verificada": false,
+      "nota": "Ficha de preventa encontrada el 18 sep 2026 (compra limitada a una pieza). Reglas genéricas: si el resultado es «desconocido» y el detalle dice que la página llegó vacía, cambia motor a playwright.",
+      "reglas": {
+        "bloqueo": ["Access Denied", "Request unsuccessful", "Incapsula"],
+        "selectores_agotado": [],
+        "selectores_disponible": [],
+        "selector_zona": null,
+        "texto_agotado": ["Producto agotado", "Sin existencias", "Agotado", "No disponible por el momento"],
+        "texto_disponible": ["Agregar al carrito", "Comprar ahora", "Apartar"],
+        "texto_terceros": [],
+        "selector_precio": ["[class*='price'] [class*='current']", "[class*='Price']", "[class*='precio']"],
+        "selector_vendedor": []
+      }
+    },
+    {
+      "id": "mercadolibre",
+      "nombre": "Mercado Libre (Tienda oficial Nintendo)",
+      "url": "",
+      "activa": false,
+      "motor": "requests",
+      "verificada": false,
+      "nota": "La tienda oficial de Nintendo publicó la preventa a $1,449 (11 sep) y se agotó. Pega aquí la URL del artículo (empieza con https://articulo.mercadolibre.com.mx/MLM-...) y pon activa=true. Verifica que el vendedor sea la tienda oficial, no un revendedor.",
+      "reglas": {
+        "bloqueo": ["Verificación de seguridad", "Comprobación de seguridad"],
+        "selectores_agotado": [],
+        "selectores_disponible": [],
+        "selector_zona": null,
+        "texto_agotado": ["Publicación pausada", "Publicación finalizada", "no está disponible", "Sin stock", "agotado"],
+        "texto_disponible": ["Comprar ahora", "Agregar al carrito"],
+        "texto_terceros": [],
+        "selector_precio": [".ui-pdp-price__second-line .andes-money-amount__fraction", ".andes-money-amount__fraction"],
+        "selector_vendedor": [".ui-pdp-seller__header__title", "[class*='seller']"]
+      }
+    },
+    {
+      "id": "gameplanet",
+      "nombre": "Gameplanet",
+      "url": "",
+      "activa": false,
+      "motor": "requests",
+      "verificada": false,
+      "nota": "Gameplanet anunció «preventas agotadas» el 13 sep. Pega la URL de la ficha del juego en gameplanet.com y pon activa=true. Los selectores son los típicos de una tienda Magento; ajústalos si el --dump muestra otra estructura.",
+      "reglas": {
+        "bloqueo": [],
+        "selectores_agotado": [".stock.unavailable"],
+        "selectores_disponible": ["#product-addtocart-button", ".stock.available"],
+        "selector_zona": ".product-info-main",
+        "texto_agotado": ["Agotado", "Sin existencias", "Preventa agotada", "No disponible"],
+        "texto_disponible": ["Añadir al carrito", "Agregar al carrito", "Comprar"],
+        "texto_terceros": [],
+        "selector_precio": [".product-info-main .price"],
+        "selector_vendedor": []
+      }
+    },
+    {
+      "id": "liverpool",
+      "nombre": "Liverpool",
+      "url": "",
+      "activa": false,
+      "motor": "playwright",
+      "verificada": false,
+      "nota": "Liverpool arma la ficha con JavaScript: requiere motor playwright (el workflow lo instala solo si hay una tienda activa que lo use). Pega la URL de la ficha cuando exista.",
+      "reglas": {
+        "bloqueo": [],
+        "selectores_agotado": [],
+        "selectores_disponible": [],
+        "selector_zona": null,
+        "texto_agotado": ["Producto agotado", "Agotado", "No disponible"],
+        "texto_disponible": ["Agregar a mi bolsa", "Comprar ahora"],
+        "texto_terceros": [],
+        "selector_precio": ["[class*='price']"],
+        "selector_vendedor": []
+      }
+    },
+    {
+      "id": "walmart_mx",
+      "nombre": "Walmart México",
+      "url": "",
+      "activa": false,
+      "motor": "playwright",
+      "verificada": false,
+      "nota": "Igual que Liverpool: sitio renderizado con JavaScript, requiere playwright. Pega la URL de la ficha cuando exista.",
+      "reglas": {
+        "bloqueo": ["Robot or human", "Press & Hold"],
+        "selectores_agotado": [],
+        "selectores_disponible": [],
+        "selector_zona": null,
+        "texto_agotado": ["Agotado", "No disponible", "Sin existencias"],
+        "texto_disponible": ["Agregar al carrito", "Comprar ahora"],
+        "texto_terceros": [],
+        "selector_precio": ["[itemprop='price']", "[class*='price']"],
+        "selector_vendedor": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+name: Rastreo de preventa
+
+on:
+  schedule:
+    # Cada 10 minutos (el cron de GitHub va en UTC y puede retrasarse varios minutos
+    # en horas pico; el mínimo permitido es cada 5). Ajusta la cadencia aquí.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      solo:
+        description: "Revisar sólo una tienda (id de tiendas.json, p. ej. amazon_mx). Vacío = todas."
+        required: false
+        default: ""
+      resumen:
+        description: "Forzar el envío del resumen a Telegram (útil para probar el bot)"
+        type: boolean
+        required: false
+        default: false
+
+# Necesario para que el workflow pueda hacer commit de estado.json
+permissions:
+  contents: write
+
+# Evita que dos corridas se pisen al escribir el estado
+concurrency:
+  group: rastreo-preventa
+  cancel-in-progress: false
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Clonar repo
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Dependencias
+        run: pip install -r requirements.txt
+
+      - name: Playwright (sólo si alguna tienda activa lo usa)
+        run: |
+          if python - <<'EOF'
+          import json, sys
+          cfg = json.load(open("tiendas.json", encoding="utf-8"))
+          usa = any(t.get("activa") and t.get("url") and t.get("motor") == "playwright" for t in cfg["tiendas"])
+          sys.exit(0 if usa else 1)
+          EOF
+          then
+            pip install playwright
+            playwright install --with-deps chromium
+          else
+            echo "Ninguna tienda activa usa playwright; se omite la instalación."
+          fi
+
+      - name: Revisar tiendas
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SOLO: ${{ github.event.inputs.solo }}
+          RESUMEN: ${{ github.event.inputs.resumen }}
+        run: |
+          ARGS=""
+          if [ -n "$SOLO" ]; then ARGS="$ARGS --solo $SOLO"; fi
+          if [ "$RESUMEN" = "true" ]; then ARGS="$ARGS --resumen"; fi
+          python rastreador.py $ARGS
+
+      - name: Guardar estado en el repo
+        run: |
+          git config user.name "rastreador-bot"
+          git config user.email "rastreador-bot@users.noreply.github.com"
+          git add estado.json
+          if git diff --staged --quiet; then
+            echo "Sin cambios de estado."
+          else
+            git commit -m "estado: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            git pull --rebase
+            git push
+          fi
