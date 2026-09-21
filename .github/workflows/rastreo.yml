@@ -60,7 +60,7 @@ jobs:
 
       - name: Revisar tiendas
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SOLO: ${{ github.event.inputs.solo }}
           RESUMEN: ${{ github.event.inputs.resumen }}
