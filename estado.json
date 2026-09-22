@@ -3,14 +3,14 @@
     "ultimo_resumen": "2026-09-21"
   },
   "amazon_mx": {
-    "estado": "bloqueado",
+    "estado": "agotado",
     "precio": null,
     "vendedor": null,
-    "detalle": "patrón de bloqueo: api-services-support@amazon.com",
+    "detalle": "selector #outOfStock",
     "http": 200,
-    "ultima_revision": "2026-09-22T00:16:26-06:00",
-    "desde": "2026-09-21T13:38:41-06:00",
-    "errores_seguidos": 7
+    "ultima_revision": "2026-09-22T05:44:24-06:00",
+    "desde": "2026-09-22T05:44:24-06:00",
+    "errores_seguidos": 0
   },
   "coppel": {
     "estado": "error",
@@ -18,8 +18,8 @@
     "vendedor": null,
     "detalle": "Error de red: HTTPSConnectionPool(host='www.coppel.com', port=443): Read timed out. (read timeout=25)",
     "http": null,
-    "ultima_revision": "2026-09-22T00:16:26-06:00",
+    "ultima_revision": "2026-09-22T05:44:24-06:00",
     "desde": "2026-09-21T13:38:41-06:00",
-    "errores_seguidos": 7
+    "errores_seguidos": 8
   }
 }
