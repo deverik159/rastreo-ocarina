@@ -8,9 +8,9 @@
     "vendedor": null,
     "detalle": "patrón de bloqueo: api-services-support@amazon.com",
     "http": 200,
-    "ultima_revision": "2026-09-21T19:14:50-06:00",
+    "ultima_revision": "2026-09-22T00:16:26-06:00",
     "desde": "2026-09-21T13:38:41-06:00",
-    "errores_seguidos": 6
+    "errores_seguidos": 7
   },
   "coppel": {
     "estado": "error",
@@ -18,8 +18,8 @@
     "vendedor": null,
     "detalle": "Error de red: HTTPSConnectionPool(host='www.coppel.com', port=443): Read timed out. (read timeout=25)",
     "http": null,
-    "ultima_revision": "2026-09-21T19:14:50-06:00",
+    "ultima_revision": "2026-09-22T00:16:26-06:00",
     "desde": "2026-09-21T13:38:41-06:00",
-    "errores_seguidos": 6
+    "errores_seguidos": 7
   }
 }
